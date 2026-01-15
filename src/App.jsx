@@ -43,7 +43,9 @@ function App() {
   };
 
   useEffect(() => {
-    scrollToBottom();
+    if (activeChat.messages.length > 0) {
+      scrollToBottom();
+    }
   }, [activeChat.messages]);
 
   const handleSend = async (isWarmup = false) => {
