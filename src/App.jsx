@@ -278,7 +278,7 @@ function App() {
                 <div className="feature-card glass-panel">
                   <Zap size={24} color="var(--accent-secondary)" />
                   <h3>Extreme Speed</h3>
-                  <p>Powered by WebGPU for high-performance, real-time AI responses.</p>
+                  <p>State-of-the-art local architecture for high-performance, real-time AI responses.</p>
                 </div>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', marginTop: '1.5rem', fontStyle: 'italic' }}>
@@ -408,8 +408,8 @@ function App() {
 
                 <h4>The Essentials</h4>
                 <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  <li><strong>Local Engine:</strong> High-performance, offline intelligence running on your device via WebGPU.</li>
-                  <li><strong>Llama 3.2 Power:</strong> Using the latest state-of-the-art weights for local reasoning.</li>
+                  <li><strong>Local Engine:</strong> High-performance, offline intelligence running directly on your hardware.</li>
+                  <li><strong>SONIC Core:</strong> Using the latest state-of-the-art neural architecture for advanced reasoning.</li>
                   <li><strong>Privacy Standard:</strong> Your chats and data never leave your hardware.</li>
                 </ul>
 

@@ -1,22 +1,21 @@
 # SONIC: Private Local AI
 
-SONIC is an open-source project that brings powerful AI models directly to your browser. Everything runs locally on your machine, which means your data never leaves your computer.
+SONIC is a premium open-source platform that brings advanced artificial intelligence directly to your browser. Everything runs locally on your machine, ensuring total privacy and near-instant performance.
 
 ## Features
 
-- **Multimodal Support**: Upload images and chat about them using **SONIC 4 (Vision)**.
-- **Speech-to-Text**: Just click the mic icon to talk directly to the AI.
-- **100% Private**: Your conversations stay on your device.
-- **Offline Capable**: Once the model is initialized, you can use SONIC even without an internet connection.
-- **Fast and Secure**: Powered by your own graphics card and processor for near-instant responses.
-- **Open Source**: Free to use and open for everyone.
+- **SONIC Intelligence**: Advanced local reasoning powered by the latest neural architectures.
+- **100% Private**: Your conversations and data never leave your device. Zero cloud, zero tracking.
+- **Offline Capable**: Once initialized, SONIC runs completely offline from your local storage.
+- **Ultra Performance**: Optimized for local hardware to deliver real-time, high-fidelity AI responses.
+- **Open Source**: Free to use, modify, and build upon.
 
 ## Getting Started
 
-1. **Select a Model**: Choose between different model sizes based on your machine's power.
-2. **Initialize**: Click the "Initialize AI" button in the header. This will download the model once and save it to your browser's storage.
-3. **Start Chatting**: Once the status says "Ready", you're all set to go.
+1. **Initialize Intelligence**: Click the "Initialize AI" button in the header. This performs a one-time setup to store the SONIC engine in your browser.
+2. **Offline Ready**: Once the status shows "Downloaded", SONIC is ready for offline use.
+3. **Start Chatting**: Type your prompt and experience the power of truly private AI.
 
 ## Credits
 
-Created by bxzex.
+Developed and Maintained by bxzex.
