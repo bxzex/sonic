@@ -38,12 +38,21 @@ function App() {
     localStorage.setItem('sonic_downloaded_models', JSON.stringify(downloadedModels));
   }, [downloadedModels]);
 
+  useEffect(() => {
+    const saved = localStorage.getItem('sonic_downloaded_models');
+    if (saved) {
+      const parsed = JSON.parse(saved);
+      if (parsed[SUPER_MODEL]) {
+        setDownloadedModels(parsed);
+      }
+    }
+  }, []);
+
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
   const getModelName = (id) => {
-    if (id === SUPER_MODEL) return 'SONIC Intelligence';
-    return 'SONIC';
+    return 'SONIC Intelligence';
   };
 
   useEffect(() => {
@@ -71,16 +80,20 @@ function App() {
 
     if (isWarmup) {
       if (loading || isInitializing) return;
+      if (downloadedModels[SUPER_MODEL]) {
+        alert('SONIC Intelligence is already ready for local use.');
+        return;
+      }
+
       setIsInitializing(true);
       try {
-        if (downloadedModels[SUPER_MODEL]) {
-          alert('SONIC Intelligence is already downloaded and ready.');
-          return;
-        }
-
         await initWebLLM(SUPER_MODEL);
-        setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
-        alert('SONIC Intelligence is now ready for offline use.');
+        setDownloadedModels(prev => {
+          const newState = { ...prev, [SUPER_MODEL]: true };
+          localStorage.setItem('sonic_downloaded_models', JSON.stringify(newState));
+          return newState;
+        });
+        alert('SONIC Intelligence has been successfully stored for local use.');
         return;
       } catch (e) {
         alert(e.message);
@@ -109,7 +122,14 @@ function App() {
       ));
 
       await sendMessage(updatedMessages, 'browser', SUPER_MODEL, (content) => {
-        setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
+        // Ensure success marks the model as downloaded if it wasn't already
+        if (!downloadedModels[SUPER_MODEL]) {
+          setDownloadedModels(prev => {
+            const newState = { ...prev, [SUPER_MODEL]: true };
+            localStorage.setItem('sonic_downloaded_models', JSON.stringify(newState));
+            return newState;
+          });
+        }
         setChats(prev => prev.map(c =>
           c.id === activeChatId
             ? {
