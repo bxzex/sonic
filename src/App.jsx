@@ -27,6 +27,7 @@ function App() {
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [isInitializing, setIsInitializing] = useState(false);
 
   const [downloadedModels, setDownloadedModels] = useState(() => {
     const saved = localStorage.getItem('sonic_downloaded_models');
@@ -69,6 +70,8 @@ function App() {
     if ((!input.trim() && !isWarmup) || loading) return;
 
     if (isWarmup) {
+      if (loading || isInitializing) return;
+      setIsInitializing(true);
       try {
         if (downloadedModels[SUPER_MODEL]) {
           alert('SONIC Intelligence is already downloaded and ready.');
@@ -82,6 +85,8 @@ function App() {
       } catch (e) {
         alert(e.message);
         return;
+      } finally {
+        setIsInitializing(false);
       }
     }
 
@@ -241,10 +246,10 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : downloadedModels[SUPER_MODEL] ? 'Downloaded' : 'Initialize AI'}
+                {isInitializing ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : downloadedModels[SUPER_MODEL] ? 'Downloaded' : 'Initialize AI'}
               </button>
-              <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
-                {loading ? (
+              <span className="desktop-only" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
+                {isInitializing ? (
                   <strong>Target: {getModelName(progress?.modelId)}</strong>
                 ) : downloadedModels[SUPER_MODEL] ? (
                   <strong>Ready for offline use.</strong>
