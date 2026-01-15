@@ -20,8 +20,8 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Llama-3.2-11B-Vision-Instruct-q4f16_1-vllm-MLC');
-  const SUPER_MODEL = 'Llama-3.2-11B-Vision-Instruct-q4f16_1-vllm-MLC';
+  const [model, setModel] = useState('Phi-3.5-vision-instruct-q4f16_1-MLC');
+  const SUPER_MODEL = 'Phi-3.5-vision-instruct-q4f16_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
@@ -89,7 +89,7 @@ function App() {
 
         await initWebLLM(SUPER_MODEL);
         setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
-        alert('SONIC Superbrain (multimodal) is now ready for offline use.');
+        alert('SONIC Superbrain is now ready for offline use.');
         return;
       } catch (e) {
         alert(e.message);
