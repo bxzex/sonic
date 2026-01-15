@@ -44,6 +44,7 @@ export const useEngine = () => {
             return engine;
         } catch (err) {
             console.error("WebLLM Init Error:", err);
+            setProgress(null);
             throw err;
         } finally {
             setLoading(false);
@@ -87,6 +88,7 @@ export const useEngine = () => {
             return fullContent;
         } catch (err) {
             console.error("WebLLM Message Error:", err);
+            setProgress(null);
             const errorMsg = err?.message || err?.toString() || 'Unknown error';
             throw new Error('Processing failed: ' + errorMsg);
         } finally {
