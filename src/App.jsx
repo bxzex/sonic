@@ -20,9 +20,8 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('auto');
-  const TEXT_MODEL = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
-  const VISION_MODEL = 'Phi-3.5-vision-instruct-q4f16_1-MLC';
+  const [model, setModel] = useState('Llama-3.2-11B-Vision-Instruct-q4f16_1-MLC');
+  const SUPER_MODEL = 'Llama-3.2-11B-Vision-Instruct-q4f16_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
@@ -54,10 +53,7 @@ function App() {
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
   const getModelName = (id) => {
-    if (id === TEXT_MODEL) return 'SONIC 2';
-    if (id === VISION_MODEL) return 'SONIC 3';
-    if (id === 'Llama-3.1-8B-Instruct-q4f32_1-MLC') return 'SONIC 1';
-    if (id === 'Qwen2-7B-Instruct-q4f32_1-MLC') return 'SONIC 4';
+    if (id === SUPER_MODEL) return 'SONIC Superbrain';
     return 'SONIC';
   };
 
@@ -86,19 +82,14 @@ function App() {
 
     if (isWarmup) {
       try {
-        const modelsToInit = model === 'auto' ? [TEXT_MODEL, VISION_MODEL] : [model];
-        const modelsNeeded = modelsToInit.filter(m => !downloadedModels[m]);
-
-        if (modelsNeeded.length === 0) {
-          alert('This model is already downloaded and ready.');
+        if (downloadedModels[SUPER_MODEL]) {
+          alert('SONIC Superbrain is already downloaded and ready.');
           return;
         }
 
-        for (const m of modelsNeeded) {
-          await initWebLLM(m);
-          setDownloadedModels(prev => ({ ...prev, [m]: true }));
-        }
-        alert('SONIC Intelligence updated. Models are now ready for offline use.');
+        await initWebLLM(SUPER_MODEL);
+        setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
+        alert('SONIC Superbrain (multimodal) is now ready for offline use.');
         return;
       } catch (e) {
         alert(e.message);
@@ -125,13 +116,8 @@ function App() {
           : c
       ));
 
-      let selectedModel = model;
-      if (model === 'auto') {
-        selectedModel = (pendingImages.length > 0 || updatedMessages.some(m => m.images?.length > 0)) ? VISION_MODEL : TEXT_MODEL;
-      }
-
-      const fullContent = await sendMessage(updatedMessages, 'browser', selectedModel, (content) => {
-        setDownloadedModels(prev => ({ ...prev, [selectedModel]: true }));
+      const fullContent = await sendMessage(updatedMessages, 'browser', SUPER_MODEL, (content) => {
+        setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
         setChats(prev => prev.map(c =>
           c.id === activeChatId
             ? {
@@ -319,9 +305,7 @@ function App() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              <option value="auto">SONIC Intelligence (Multimodal)</option>
-              <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">SONIC 2 (Fast Text)</option>
-              <option value="Phi-3.5-vision-instruct-q4f16_1-MLC">SONIC 3 (Vision HD)</option>
+              <option value={SUPER_MODEL}>SONIC Superbrain (Text + Vision)</option>
             </select>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -332,9 +316,9 @@ function App() {
                 style={{
                   padding: '0.4rem 0.8rem',
                   fontSize: '0.8rem',
-                  background: (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'var(--accent-secondary)' : 'var(--accent-primary)',
+                  background: downloadedModels[SUPER_MODEL] ? 'var(--accent-secondary)' : 'var(--accent-primary)',
                   border: 'none',
-                  color: (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? '#020617' : 'white',
+                  color: downloadedModels[SUPER_MODEL] ? '#020617' : 'white',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
@@ -344,12 +328,12 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
+                {loading ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : downloadedModels[SUPER_MODEL] ? 'Downloaded' : 'Initialize AI'}
               </button>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {loading ? (
                   <strong>Target: {getModelName(progress?.modelId)}</strong>
-                ) : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? (
+                ) : downloadedModels[SUPER_MODEL] ? (
                   <strong>Ready for offline use.</strong>
                 ) : (
                   <><strong>Offline Support:</strong> One-time setup saves models locally.</>
