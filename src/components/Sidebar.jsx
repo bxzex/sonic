@@ -1,12 +1,17 @@
-import { PlusCircle, MessageSquare, Trash2, Download, Settings, BookOpen, LogOut, User, Instagram, Linkedin, Github, Globe } from 'lucide-react';
+import { PlusCircle, MessageSquare, Trash2, Download, Settings, BookOpen, LogOut, User, Instagram, Linkedin, Github, Globe, X } from 'lucide-react';
 import Logo from './Logo';
 
-const Sidebar = ({ chats, activeChatId, onNewChat, onSelectChat, onDeleteChat, onDownloadChat, onOpenSettings, onOpenDocs, userProfile }) => {
+const Sidebar = ({ chats, activeChatId, onNewChat, onSelectChat, onDeleteChat, onDownloadChat, onOpenSettings, onOpenDocs, userProfile, isOpen, onClose }) => {
     return (
-        <aside className="sidebar">
-            <div style={{ display: 'flex', alignItems: 'center', gap: '10px', padding: '0.5rem 0.5rem 1.5rem' }}>
-                <Logo size={24} />
-                <span style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '0.5px', color: 'var(--text-main)' }}>SONIC</span>
+        <aside className={`sidebar ${isOpen ? 'mobile-open' : ''}`}>
+            <div className="sidebar-header" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0.5rem 0.5rem 1.5rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <Logo size={24} />
+                    <span style={{ fontWeight: 700, fontSize: '1rem', letterSpacing: '0.5px', color: 'var(--text-main)' }}>SONIC</span>
+                </div>
+                <button className="close-sidebar-mobile" onClick={onClose}>
+                    <X size={20} />
+                </button>
             </div>
 
             <button className="new-chat-btn" onClick={onNewChat} style={{ marginBottom: '1.5rem' }}>

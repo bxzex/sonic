@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Zap, Shield, Cpu, Share2, X, Instagram, Linkedin, Github, Globe, User, Download } from 'lucide-react';
+import { Send, Zap, Shield, Cpu, Share2, X, Instagram, Linkedin, Github, Globe, User, Download, Menu } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import Logo from './components/Logo';
@@ -26,6 +26,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   const [downloadedModels, setDownloadedModels] = useState(() => {
     const saved = localStorage.getItem('sonic_downloaded_models');
@@ -198,20 +199,29 @@ function App() {
         onOpenSettings={() => setShowSettings(true)}
         onOpenDocs={() => setShowDocs(true)}
         userProfile={userProfile}
+        isOpen={isSidebarOpen}
+        onClose={() => setIsSidebarOpen(false)}
       />
 
-      <main className="chat-main">
+      <main className={`chat-main ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <header className="chat-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+            <button
+              className="menu-toggle"
+              onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            >
+              <Menu size={20} />
+            </button>
+            <div className="header-brand-mobile">SONIC</div>
             <select
-              className="model-selector"
+              className="model-selector desktop-only"
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              <option value={SUPER_MODEL}>SONIC Intelligence (Text Only)</option>
+              <option value={SUPER_MODEL}>SONIC Intelligence</option>
             </select>
 
-            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div className="status-container">
               <button
                 className="share-btn"
                 onClick={() => handleSend(true)}
@@ -245,10 +255,12 @@ function App() {
             </div>
           </div>
 
-          <button className="share-btn" onClick={handleShare}>
-            <Share2 size={16} />
-            Share SONIC
-          </button>
+          <div style={{ display: 'flex', gap: '8px' }}>
+            <button className="share-btn hide-mobile" onClick={handleShare}>
+              <Share2 size={16} />
+              Share SONIC
+            </button>
+          </div>
         </header>
 
         <div className="messages-container">

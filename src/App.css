@@ -503,3 +503,144 @@ textarea {
 }
 
 /* End of styles */
+
+.menu-toggle {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--text-main);
+  cursor: pointer;
+  padding: 0.5rem;
+  align-items: center;
+  justify-content: center;
+}
+
+.header-brand-mobile {
+  display: none;
+  font-weight: 800;
+  font-size: 1.2rem;
+  letter-spacing: -1px;
+  background: var(--brand-gradient);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.close-sidebar-mobile {
+  display: none;
+}
+
+.status-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+/* Mobile Media Queries */
+@media (max-width: 768px) {
+  .sidebar {
+    position: fixed;
+    left: -280px;
+    top: 0;
+    bottom: 0;
+    transition: transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    box-shadow: 20px 0 50px rgba(0, 0, 0, 0.5);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(280px);
+  }
+
+  .menu-toggle {
+    display: flex;
+  }
+
+  .header-brand-mobile {
+    display: block;
+  }
+
+  .desktop-only {
+    display: none !important;
+  }
+
+  .hide-mobile {
+    display: none !important;
+  }
+
+  .chat-header {
+    padding: 0 1rem;
+    height: 60px;
+  }
+
+  .close-sidebar-mobile {
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    border: none;
+    color: var(--text-muted);
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+  }
+
+  .messages-container {
+    padding: 1rem;
+  }
+
+  .welcome-screen {
+    padding-bottom: 2rem;
+  }
+
+  .brand-logo {
+    font-size: 2.5rem;
+  }
+
+  .features-grid {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .feature-card {
+    padding: 1.5rem;
+  }
+
+  .input-area {
+    padding: 1rem;
+  }
+
+  .input-container {
+    padding: 0.75rem 1rem;
+    border-radius: 18px;
+  }
+
+  .message-wrapper {
+    gap: 1rem;
+  }
+
+  .avatar {
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
+  }
+
+  .avatar svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .status-container button {
+    padding: 0.3rem 0.6rem !important;
+    font-size: 0.75rem !important;
+  }
+
+  .status-container span {
+    display: none;
+  }
+
+  .modal-content {
+    padding: 1.5rem;
+    border-radius: 20px;
+  }
+}
