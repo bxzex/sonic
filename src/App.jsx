@@ -45,6 +45,14 @@ function App() {
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
+  const getModelName = (id) => {
+    if (id === TEXT_MODEL) return 'SONIC 2';
+    if (id === VISION_MODEL) return 'SONIC 3';
+    if (id === 'Llama-3.1-8B-Instruct-q4f32_1-MLC') return 'SONIC 1';
+    if (id === 'Qwen2-7B-Instruct-q4f32_1-MLC') return 'SONIC 4';
+    return 'SONIC';
+  };
+
   useEffect(() => {
     localStorage.setItem('sonic_chats', JSON.stringify(chats));
   }, [chats]);
@@ -321,7 +329,7 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `Initializing ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
+                {loading ? `${getModelName(progress?.modelId)}: ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
               </button>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {loading ? (

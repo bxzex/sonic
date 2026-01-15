@@ -32,7 +32,8 @@ export const useEngine = () => {
                     const progressInfo = {
                         percent: Math.round(report.progress * 100),
                         status: status,
-                        raw: report.text
+                        raw: report.text,
+                        modelId: modelId
                     };
                     setProgress(progressInfo);
                     if (onProgress) onProgress(progressInfo);
