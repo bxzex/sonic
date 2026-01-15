@@ -1,0 +1,2 @@
+# sonic
+opensource ai chat
