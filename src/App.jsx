@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download } from 'lucide-react';
+import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download, Mic, Image as ImageIcon } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import Logo from './components/Logo';
@@ -25,6 +25,9 @@ function App() {
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
   const [downloadedModels, setDownloadedModels] = useState({});
+  const [isListening, setIsListening] = useState(false);
+  const [pendingImages, setPendingImages] = useState([]);
+  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
@@ -64,7 +67,7 @@ function App() {
       }
     }
 
-    const userMessage = { role: 'user', content: input };
+    const userMessage = { role: 'user', content: input, images: pendingImages };
     const updatedMessages = [...activeChat.messages, userMessage];
 
     setChats(prev => prev.map(c =>
@@ -73,8 +76,7 @@ function App() {
         : c
     ));
     setInput('');
-
-
+    setPendingImages([]);
 
     try {
       const aiPlaceholder = { role: 'assistant', content: '' };
@@ -173,6 +175,46 @@ function App() {
     setShowSettings(false);
   };
 
+  const handleMicClick = () => {
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert('Speech recognition not supported in this browser.');
+      return;
+    }
+
+    if (isListening) return;
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onstart = () => setIsListening(true);
+    recognition.onend = () => setIsListening(false);
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      setInput(prev => prev + (prev ? ' ' : '') + transcript);
+    };
+    recognition.onerror = () => setIsListening(false);
+
+    recognition.start();
+  };
+
+  const handleImageUpload = (e) => {
+    const files = Array.from(e.target.files);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPendingImages(prev => [...prev, reader.result]);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  const removeImage = (index) => {
+    setPendingImages(prev => prev.filter((_, i) => i !== index));
+  };
+
   return (
     <div className="app-container">
       <Sidebar
@@ -198,6 +240,7 @@ function App() {
               <option value="Llama-3.1-8B-Instruct-q4f32_1-MLC">SONIC 1 (Standard)</option>
               <option value="Qwen2-7B-Instruct-q4f32_1-MLC">SONIC 2 (Pro)</option>
               <option value="Mistral-7B-Instruct-v0.3-q4f32_1-MLC">SONIC 3 (Lite)</option>
+              <option value="Llava-v1.5-7b-q4f32_1-MLC">SONIC 4 (Vision)</option>
             </select>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -296,7 +339,33 @@ function App() {
         </div>
 
         <footer className="input-area">
+          {pendingImages.length > 0 && (
+            <div className="image-previews">
+              {pendingImages.map((img, i) => (
+                <div key={i} className="preview-container">
+                  <img src={img} alt="Preview" />
+                  <button onClick={() => removeImage(i)} className="remove-img"><X size={12} /></button>
+                </div>
+              ))}
+            </div>
+          )}
           <div className="input-container glass-panel">
+            <button
+              className="upload-icon-btn"
+              onClick={() => fileInputRef.current?.click()}
+              title="Upload Images"
+            >
+              <ImageIcon size={20} />
+            </button>
+            <input
+              type="file"
+              ref={fileInputRef}
+              hidden
+              multiple
+              accept="image/*"
+              onChange={handleImageUpload}
+            />
+
             <textarea
               placeholder="Enter prompt..."
               rows={1}
@@ -313,10 +382,19 @@ function App() {
                 }
               }}
             />
+
+            <button
+              className={`mic-btn ${isListening ? 'listening' : ''}`}
+              onClick={handleMicClick}
+              title="Speech to Text"
+            >
+              <Mic size={20} />
+            </button>
+
             <button
               className="send-btn"
               onClick={handleSend}
-              disabled={loading || !input.trim()}
+              disabled={loading || (!input.trim() && pendingImages.length === 0)}
             >
               <Zap size={18} />
             </button>
@@ -327,84 +405,88 @@ function App() {
         </footer>
       </main>
 
-      {showSettings && (
-        <div className="modal-overlay" onClick={() => setShowSettings(false)}>
-          <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 className="brand-gradient" style={{ margin: 0 }}>User Settings</h2>
-              <X size={20} className="action-icon" onClick={() => setShowSettings(false)} style={{ opacity: 1 }} />
-            </div>
-
-            <div className="setting-item">
-              <label>Profile Name</label>
-              <input
-                type="text"
-                value={userProfile.name}
-                onChange={(e) => setUserProfile(prev => ({ ...prev, name: e.target.value }))}
-                className="glass-input"
-              />
-            </div>
-
-            <div className="setting-item">
-              <label>Profile Picture</label>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-                <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                  {userProfile.avatar ? (
-                    <img src={userProfile.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <User size={24} color="var(--text-muted)" />
-                  )}
-                </div>
-                <label className="upload-btn">
-                  <Upload size={16} />
-                  Upload Photo
-                  <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
-                </label>
+      {
+        showSettings && (
+          <div className="modal-overlay" onClick={() => setShowSettings(false)}>
+            <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h2 className="brand-gradient" style={{ margin: 0 }}>User Settings</h2>
+                <X size={20} className="action-icon" onClick={() => setShowSettings(false)} style={{ opacity: 1 }} />
               </div>
-            </div>
 
-            <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleSaveSettings}>Update Identity</button>
-          </div>
-        </div>
-      )}
+              <div className="setting-item">
+                <label>Profile Name</label>
+                <input
+                  type="text"
+                  value={userProfile.name}
+                  onChange={(e) => setUserProfile(prev => ({ ...prev, name: e.target.value }))}
+                  className="glass-input"
+                />
+              </div>
 
-      {showDocs && (
-        <div className="modal-overlay" onClick={() => setShowDocs(false)}>
-          <div className="modal-content glass-panel docs-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-              <h2 className="brand-gradient" style={{ margin: 0 }}>Documentation</h2>
-              <X size={20} className="action-icon" onClick={() => setShowDocs(false)} style={{ opacity: 1 }} />
-            </div>
-
-            <div className="docs-content" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
-              <h3>By bxzex</h3>
-              <p>
-                SONIC is a private AI layer built by <strong>bxzex</strong>. It runs entirely on your hardware—no cloud, no tracking, and 100% free.
-              </p>
-
-              <h4>The Essentials</h4>
-              <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                <li><strong>Local Engine:</strong> Uses your device's GPU/CPU via WebGPU for fast, offline intelligence.</li>
-                <li><strong>One-Time Setup:</strong> Models are saved to your browser storage once for permanent offline access.</li>
-                <li><strong>Total Privacy:</strong> Your chats never leave your machine. Ever.</li>
-              </ul>
-
-              <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                <h4 style={{ marginBottom: '1rem' }}>Connect with bxzex</h4>
-                <div className="social-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-                  <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
-                  <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
-                  <a href="https://www.instagram.com/bxzex/" target="_blank" className="social-link"><Instagram size={18} /> Instagram</a>
-                  <a href="https://www.linkedin.com/in/bxzex/" target="_blank" className="social-link"><Linkedin size={18} /> LinkedIn</a>
+              <div className="setting-item">
+                <label>Profile Picture</label>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+                  <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                    {userProfile.avatar ? (
+                      <img src={userProfile.avatar} alt="Avatar" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                    ) : (
+                      <User size={24} color="var(--text-muted)" />
+                    )}
+                  </div>
+                  <label className="upload-btn">
+                    <Upload size={16} />
+                    Upload Photo
+                    <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
+                  </label>
                 </div>
               </div>
-            </div>
 
-            <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close Docs</button>
+              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleSaveSettings}>Update Identity</button>
+            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+
+      {
+        showDocs && (
+          <div className="modal-overlay" onClick={() => setShowDocs(false)}>
+            <div className="modal-content glass-panel docs-modal" onClick={e => e.stopPropagation()} style={{ maxWidth: '800px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
+                <h2 className="brand-gradient" style={{ margin: 0 }}>Documentation</h2>
+                <X size={20} className="action-icon" onClick={() => setShowDocs(false)} style={{ opacity: 1 }} />
+              </div>
+
+              <div className="docs-content" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
+                <h3>By bxzex</h3>
+                <p>
+                  SONIC is a private AI layer built by <strong>bxzex</strong>. It runs entirely on your hardware—no cloud, no tracking, and 100% free.
+                </p>
+
+                <h4>The Essentials</h4>
+                <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                  <li><strong>Local Engine:</strong> Uses your device's GPU/CPU via WebGPU for fast, offline intelligence.</li>
+                  <li><strong>One-Time Setup:</strong> Models are saved to your browser storage once for permanent offline access.</li>
+                  <li><strong>Total Privacy:</strong> Your chats never leave your machine. Ever.</li>
+                </ul>
+
+                <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                  <h4 style={{ marginBottom: '1rem' }}>Connect with bxzex</h4>
+                  <div className="social-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                    <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
+                    <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
+                    <a href="https://www.instagram.com/bxzex/" target="_blank" className="social-link"><Instagram size={18} /> Instagram</a>
+                    <a href="https://www.linkedin.com/in/bxzex/" target="_blank" className="social-link"><Linkedin size={18} /> LinkedIn</a>
+                  </div>
+                </div>
+              </div>
+
+              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close Docs</button>
+            </div>
+          </div>
+        )
+      }
+    </div >
   );
 }
 

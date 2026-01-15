@@ -41,11 +41,28 @@ export const useEngine = () => {
     const sendMessage = useCallback(async (messages, type, model, onChunk) => {
         setLoading(true);
 
-        // Browser Engine (WebLLM)
         try {
             const engine = await initWebLLM(model);
+
+            // Format messages for potentially multimodal models
+            const formattedMessages = messages.map(msg => {
+                if (msg.images && msg.images.length > 0) {
+                    return {
+                        role: msg.role,
+                        content: [
+                            { type: "text", text: msg.content },
+                            ...msg.images.map(img => ({
+                                type: "image_url",
+                                image_url: { url: img }
+                            }))
+                        ]
+                    };
+                }
+                return { role: msg.role, content: msg.content };
+            });
+
             const chunks = await engine.chat.completions.create({
-                messages: messages,
+                messages: formattedMessages,
                 stream: true,
             });
 
@@ -57,7 +74,7 @@ export const useEngine = () => {
             }
             return fullContent;
         } catch (err) {
-            throw new Error('WebGPU failed or Model error: ' + err.message);
+            throw new Error('Processing failed: ' + err.message);
         } finally {
             setLoading(false);
             setProgress(null);

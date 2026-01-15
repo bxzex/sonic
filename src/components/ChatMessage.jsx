@@ -13,7 +13,21 @@ const ChatMessage = ({ message }) => {
                 {!message.content && !isUser ? (
                     <div className="shimmer-bg" style={{ height: '1.2em', width: '60%', borderRadius: '4px' }}></div>
                 ) : (
-                    <ReactMarkdown>{message.content}</ReactMarkdown>
+                    <>
+                        <ReactMarkdown>{message.content}</ReactMarkdown>
+                        {message.images && message.images.length > 0 && (
+                            <div className="message-images" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
+                                {message.images.map((img, i) => (
+                                    <img
+                                        key={i}
+                                        src={img}
+                                        alt="Uploaded"
+                                        style={{ maxWidth: '300px', maxHeight: '300px', borderRadius: '12px', border: '1px solid var(--border-color)' }}
+                                    />
+                                ))}
+                            </div>
+                        )}
+                    </>
                 )}
             </div>
         </div>
