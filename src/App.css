@@ -134,16 +134,32 @@
   padding: 2rem;
   display: flex;
   flex-direction: column;
-  gap: 2.5rem;
   max-width: 1600px;
   margin: 0 auto;
+  width: 100%;
+}
+
+.messages-stream {
+  display: flex;
+  flex-direction: column;
+  gap: 2.5rem;
   width: 100%;
 }
 
 .message-wrapper {
   display: flex;
   gap: 1.5rem;
+  padding: 1rem 0;
   animation: fadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.ai-message {
+  border-top: 1px solid rgba(255, 255, 255, 0.03);
+  padding-top: 2rem;
+}
+
+.user-message {
+  margin-top: 1rem;
 }
 
 @keyframes fadeIn {
