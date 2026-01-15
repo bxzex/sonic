@@ -5,9 +5,17 @@ export const useEngine = () => {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(null);
     const engineRef = useRef(null);
+    const currentModelIdRef = useRef(null);
 
     const initWebLLM = async (modelId, onProgress) => {
-        if (engineRef.current) return engineRef.current;
+        if (engineRef.current && currentModelIdRef.current === modelId) {
+            return engineRef.current;
+        }
+
+        if (engineRef.current) {
+            await engineRef.current.unload();
+            engineRef.current = null;
+        }
 
         setLoading(true);
         try {
@@ -31,6 +39,7 @@ export const useEngine = () => {
                 },
             });
             engineRef.current = engine;
+            currentModelIdRef.current = modelId;
             return engine;
         } finally {
             setLoading(false);
