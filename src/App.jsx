@@ -344,11 +344,11 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `${getModelName(progress?.modelId)}: ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
+                {loading ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
               </button>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {loading ? (
-                  <strong>Status: {progress?.status || 'Active'}</strong>
+                  <strong>Target: {getModelName(progress?.modelId)}</strong>
                 ) : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? (
                   <strong>Ready for offline use.</strong>
                 ) : (
