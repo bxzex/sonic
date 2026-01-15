@@ -42,9 +42,11 @@ export const useEngine = () => {
             engineRef.current = engine;
             currentModelIdRef.current = modelId;
             return engine;
+        } catch (err) {
+            console.error("WebLLM Init Error:", err);
+            throw err;
         } finally {
             setLoading(false);
-            setProgress(null);
         }
     };
 
@@ -84,12 +86,13 @@ export const useEngine = () => {
             }
             return fullContent;
         } catch (err) {
-            throw new Error('Processing failed: ' + err.message);
+            console.error("WebLLM Message Error:", err);
+            const errorMsg = err?.message || err?.toString() || 'Unknown error';
+            throw new Error('Processing failed: ' + errorMsg);
         } finally {
             setLoading(false);
-            setProgress(null);
         }
-    }, []);
+    }, [initWebLLM]);
 
     return { sendMessage, loading, progress, initWebLLM };
 };
