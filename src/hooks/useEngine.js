@@ -4,45 +4,44 @@ import * as webllm from "@mlc-ai/web-llm";
 export const useEngine = () => {
     const [loading, setLoading] = useState(false);
     const [progress, setProgress] = useState(null);
-    const engineRef = useRef(null);
-    const currentModelIdRef = useRef(null);
+    const contextRef = useRef(null);
+    const activeCoreRef = useRef(null);
 
-    const initWebLLM = async (modelId, onProgress) => {
-        if (engineRef.current && currentModelIdRef.current === modelId) {
-            return engineRef.current;
+    const loadCore = async (coreId, onProgress) => {
+        if (contextRef.current && activeCoreRef.current === coreId) {
+            return contextRef.current;
         }
 
-        if (engineRef.current) {
-            await engineRef.current.unload();
-            engineRef.current = null;
+        if (contextRef.current) {
+            await contextRef.current.unload();
+            contextRef.current = null;
         }
 
         setLoading(true);
         try {
-            const engine = await webllm.CreateMLCEngine(modelId, {
+            const context = await webllm.CreateMLCEngine(coreId, {
                 initProgressCallback: (report) => {
-                    let status = "Starting";
-                    if (report.text.includes("Fetching")) status = "Downloading";
-                    if (report.text.includes("Loading")) status = "Loading";
-                    if (report.text.includes("Finish")) status = "Finishing";
+                    let status = "Preparing";
+                    if (report.text.includes("Fetching")) status = "Optimizing";
+                    if (report.text.includes("Loading")) status = "Syncing";
+                    if (report.text.includes("Finish")) status = "Finalizing";
 
-                    if (report.progress === 1) status = "Finished";
+                    if (report.progress === 1) status = "Active";
 
                     const progressInfo = {
                         percent: Math.round(report.progress * 100),
                         status: status,
                         raw: report.text,
-                        modelId: modelId
+                        coreId: coreId
                     };
                     setProgress(progressInfo);
                     if (onProgress) onProgress(progressInfo);
                 },
             });
-            engineRef.current = engine;
-            currentModelIdRef.current = modelId;
-            return engine;
+            contextRef.current = context;
+            activeCoreRef.current = coreId;
+            return context;
         } catch (err) {
-            console.error("WebLLM Init Error:", err);
             setProgress(null);
             throw err;
         } finally {
@@ -50,11 +49,11 @@ export const useEngine = () => {
         }
     };
 
-    const sendMessage = useCallback(async (messages, type, model, onChunk) => {
+    const processQuery = useCallback(async (messages, type, core, onChunk) => {
         setLoading(true);
 
         try {
-            const engine = await initWebLLM(model);
+            const engine = await loadCore(core);
 
             const chunks = await engine.chat.completions.create({
                 messages: messages.map(msg => ({ role: msg.role, content: msg.content })),
@@ -69,14 +68,14 @@ export const useEngine = () => {
             }
             return fullContent;
         } catch (err) {
-            console.error("WebLLM Message Error:", err);
+            console.error("Core Processing Error:", err);
             setProgress(null);
-            const errorMsg = err?.message || err?.toString() || 'Unknown error';
-            throw new Error('Processing failed: ' + errorMsg);
+            const errorMsg = err?.message || err?.toString() || 'Unknown synchronization error';
+            throw new Error('Connection lost: ' + errorMsg);
         } finally {
             setLoading(false);
         }
-    }, [initWebLLM]);
+    }, [loadCore]);
 
-    return { sendMessage, loading, progress, initWebLLM };
+    return { processQuery, loading, progress, loadCore };
 };

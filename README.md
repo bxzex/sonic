@@ -1,21 +1,21 @@
-# SONIC: Private Local AI
+# SONIC: Private Local intelligence
 
-SONIC is a premium open-source platform that brings advanced artificial intelligence directly to your browser. Everything runs locally on your machine, ensuring total privacy and near-instant performance.
+SONIC is a high-performance intelligence layer that runs directly in your browser. All processing is handled locally on your machine, ensuring total privacy and near-instant response times. 
 
 ## Features
 
-- **SONIC Intelligence**: Advanced local reasoning powered by the latest neural architectures.
-- **100% Private**: Your conversations and data never leave your device. Zero cloud, zero tracking.
-- **Offline Capable**: Once initialized, SONIC runs completely offline from your local storage.
-- **Ultra Performance**: Optimized for local hardware to deliver real-time, high-fidelity AI responses.
-- **Open Source**: Free to use, modify, and build upon.
+- **Core Intelligence**: Advanced local reasoning optimized for speed and privacy.
+- **Zero Cloud**: Your conversations never leave your device. No tracking, no data collection.
+- **Offline Protocol**: Once synced, SONIC functions entirely without an internet connection.
+- **Hardware Native**: Optimized for local graphics and compute power for real-time interaction.
+- **Open Standards**: Fully open-source and free for all users.
 
 ## Getting Started
 
-1. **Initialize Intelligence**: Click the "Initialize AI" button in the header. This performs a one-time setup to store the SONIC engine in your browser.
-2. **Offline Ready**: Once the status shows "Downloaded", SONIC is ready for offline use.
-3. **Start Chatting**: Type your prompt and experience the power of truly private AI.
+1. **Sync Core**: Click **Initialize AI** in the header to sync the SONIC intelligence core to your browser storage.
+2. **Ready State**: Once the sync is complete, the status will lock to **Ready State**.
+3. **Private Chat**: You're all set. Start chatting with a completely private and local intelligence instance.
 
 ## Credits
 
-Developed and Maintained by bxzex.
+Crafted by **bxzex**.

@@ -21,41 +21,37 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Llama-3.2-3B-Instruct-q4f32_1-MLC');
-  const SUPER_MODEL = 'Llama-3.2-3B-Instruct-q4f32_1-MLC';
+  const [core, setCore] = useState('Llama-3.2-3B-Instruct-q4f32_1-MLC');
+  const SONIC_CORE = 'Llama-3.2-3B-Instruct-q4f32_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isInitializing, setIsInitializing] = useState(false);
 
-  const [downloadedModels, setDownloadedModels] = useState(() => {
+  const [activeNodes, setActiveNodes] = useState(() => {
     try {
-      const saved = localStorage.getItem('sonic_downloaded_models');
+      const saved = localStorage.getItem('sonic_active_nodes');
       return saved ? JSON.parse(saved) : {};
     } catch { return {}; }
   });
 
   useEffect(() => {
-    localStorage.setItem('sonic_downloaded_models', JSON.stringify(downloadedModels));
-  }, [downloadedModels]);
+    localStorage.setItem('sonic_active_nodes', JSON.stringify(activeNodes));
+  }, [activeNodes]);
 
   useEffect(() => {
-    const saved = localStorage.getItem('sonic_downloaded_models');
+    const saved = localStorage.getItem('sonic_active_nodes');
     if (saved) {
       const parsed = JSON.parse(saved);
-      if (parsed[SUPER_MODEL]) {
-        setDownloadedModels(parsed);
+      if (parsed[SONIC_CORE]) {
+        setActiveNodes(parsed);
       }
     }
   }, []);
 
   const messagesEndRef = useRef(null);
-  const { sendMessage, loading, progress, initWebLLM } = useEngine();
-
-  const getModelName = (id) => {
-    return 'SONIC Intelligence';
-  };
+  const { processQuery, loading, progress, loadCore } = useEngine();
 
   useEffect(() => {
     localStorage.setItem('sonic_chats', JSON.stringify(chats));
@@ -77,25 +73,25 @@ function App() {
     }
   }, [activeChat.messages]);
 
-  const handleSend = async (isWarmup = false) => {
-    if ((!input.trim() && !isWarmup) || loading) return;
+  const handleAction = async (isSetup = false) => {
+    if ((!input.trim() && !isSetup) || loading) return;
 
-    if (isWarmup) {
+    if (isSetup) {
       if (loading || isInitializing) return;
-      if (downloadedModels[SUPER_MODEL]) {
-        alert('SONIC Intelligence is already ready for local use.');
+      if (activeNodes[SONIC_CORE]) {
+        alert('SONIC Intelligence is active and ready.');
         return;
       }
 
       setIsInitializing(true);
       try {
-        await initWebLLM(SUPER_MODEL);
-        setDownloadedModels(prev => {
-          const newState = { ...prev, [SUPER_MODEL]: true };
-          localStorage.setItem('sonic_downloaded_models', JSON.stringify(newState));
+        await loadCore(SONIC_CORE);
+        setActiveNodes(prev => {
+          const newState = { ...prev, [SONIC_CORE]: true };
+          localStorage.setItem('sonic_active_nodes', JSON.stringify(newState));
           return newState;
         });
-        alert('SONIC Intelligence has been successfully stored for local use.');
+        alert('SONIC Intelligence has been synced to your hardware.');
         return;
       } catch (e) {
         alert(e.message);
@@ -123,12 +119,11 @@ function App() {
           : c
       ));
 
-      await sendMessage(updatedMessages, 'browser', SUPER_MODEL, (content) => {
-        // Ensure success marks the model as downloaded if it wasn't already
-        if (!downloadedModels[SUPER_MODEL]) {
-          setDownloadedModels(prev => {
-            const newState = { ...prev, [SUPER_MODEL]: true };
-            localStorage.setItem('sonic_downloaded_models', JSON.stringify(newState));
+      await processQuery(updatedMessages, 'local', SONIC_CORE, (content) => {
+        if (!activeNodes[SONIC_CORE]) {
+          setActiveNodes(prev => {
+            const newState = { ...prev, [SONIC_CORE]: true };
+            localStorage.setItem('sonic_active_nodes', JSON.stringify(newState));
             return newState;
           });
         }
@@ -172,7 +167,7 @@ function App() {
     }
   };
 
-  const handleDownloadChat = (id) => {
+  const handleExport = (id) => {
     const chat = chats.find(c => c.id === id);
     if (!chat) return;
 
@@ -191,10 +186,10 @@ function App() {
     URL.revokeObjectURL(url);
   };
 
-  const handleShare = () => {
+  const handleLink = () => {
     const url = window.location.href;
     navigator.clipboard.writeText(url);
-    alert('Site link copied! Share the power of private AI.');
+    alert('Link copied to clipboard.');
   };
 
   const handleAvatarChange = (e) => {
@@ -208,9 +203,9 @@ function App() {
     }
   };
 
-  const handleSaveSettings = () => {
+  const handleUpdate = () => {
     localStorage.setItem('sonic_user', JSON.stringify(userProfile));
-    alert('Profile updated successfully.');
+    alert('Identity updated.');
     setShowSettings(false);
   };
 
@@ -222,7 +217,7 @@ function App() {
         onNewChat={createNewChat}
         onSelectChat={setActiveChatId}
         onDeleteChat={handleDeleteChat}
-        onDownloadChat={handleDownloadChat}
+        onDownloadChat={handleExport}
         onOpenSettings={() => setShowSettings(true)}
         onOpenDocs={() => setShowDocs(true)}
         userProfile={userProfile}
@@ -242,17 +237,17 @@ function App() {
             <div className="header-brand-mobile">SONIC</div>
             <select
               className="model-selector desktop-only"
-              value={model}
-              onChange={(e) => setModel(e.target.value)}
+              value={core}
+              onChange={(e) => setCore(e.target.value)}
             >
-              <option value={SUPER_MODEL}>SONIC Intelligence</option>
+              <option value={SONIC_CORE}>SONIC Intelligence</option>
             </select>
 
             <div className="status-container">
-              {!downloadedModels[SUPER_MODEL] || isInitializing ? (
+              {!activeNodes[SONIC_CORE] || isInitializing ? (
                 <button
                   className="share-btn"
-                  onClick={() => handleSend(true)}
+                  onClick={() => handleAction(true)}
                   disabled={loading || isInitializing}
                   style={{
                     padding: '0.4rem 0.8rem',
@@ -280,9 +275,9 @@ function App() {
 
               <span className="desktop-only" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {isInitializing ? (
-                  <strong>Target: {getModelName(progress?.modelId)}</strong>
-                ) : !downloadedModels[SUPER_MODEL] ? (
-                  <><strong>Local Setup:</strong> One-time download for offline access.</>
+                  <strong>Syncing...</strong>
+                ) : !activeNodes[SONIC_CORE] ? (
+                  <><strong>Local Setup:</strong> One-time sync for private access.</>
                 ) : (
                   <strong>Stored in local hardware.</strong>
                 )}
@@ -291,7 +286,7 @@ function App() {
           </div>
 
           <div style={{ display: 'flex', gap: '8px' }}>
-            <button className="share-btn hide-mobile" onClick={handleShare}>
+            <button className="share-btn hide-mobile" onClick={handleLink}>
               <Share2 size={16} />
               Share
             </button>
@@ -308,7 +303,7 @@ function App() {
                 <span className="badge free">100% FREE</span>
               </div>
               <p style={{ color: 'var(--text-muted)', fontSize: '1.1rem' }}>
-                Private, In-Browser Processing. 100% Offline.
+                Private, Offline Intelligence.
               </p>
 
               <div className="features-grid">
@@ -329,12 +324,12 @@ function App() {
                 </div>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', marginTop: '1.5rem', fontStyle: 'italic' }}>
-                Once downloaded, SONIC will run 100% locally from your device storage.
+                Once synced, SONIC runs entirely from your local hardware.
               </p>
 
               <div style={{ marginTop: '2rem' }}>
                 <p style={{ color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-                  Select a model above and initialize to start chatting offline.
+                  Initialize from the header to start chatting offline.
                 </p>
               </div>
             </div>
@@ -376,21 +371,21 @@ function App() {
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) {
                   e.preventDefault();
-                  handleSend();
+                  handleAction();
                 }
               }}
             />
 
             <button
               className="send-btn"
-              onClick={handleSend}
+              onClick={handleAction}
               disabled={loading || !input.trim()}
             >
               <Zap size={18} />
             </button>
           </div>
           <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', textAlign: 'center', marginTop: '10px' }}>
-            Private Local Engine • v1.1.0
+            Private Local Engine v1.1.0
           </p>
         </footer>
       </main>
@@ -400,7 +395,7 @@ function App() {
           <div className="modal-overlay" onClick={() => setShowSettings(false)}>
             <div className="modal-content glass-panel" onClick={e => e.stopPropagation()}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem' }}>
-                <h2 className="brand-gradient" style={{ margin: 0 }}>User Settings</h2>
+                <h2 className="brand-gradient" style={{ margin: 0 }}>Identity Settings</h2>
                 <X size={20} className="action-icon" onClick={() => setShowSettings(false)} style={{ opacity: 1 }} />
               </div>
 
@@ -415,7 +410,7 @@ function App() {
               </div>
 
               <div className="setting-item">
-                <label>Profile Picture</label>
+                <label>Avatar Preference</label>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
                   <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: 'var(--bg-card)', border: '1px solid var(--border-color)', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
                     {userProfile.avatar ? (
@@ -426,13 +421,13 @@ function App() {
                   </div>
                   <label className="upload-btn">
                     <Download size={16} />
-                    Upload Photo
+                    Upload Image
                     <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
                   </label>
                 </div>
               </div>
 
-              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleSaveSettings}>Update Identity</button>
+              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleUpdate}>Update Identity</button>
             </div>
           </div>
         )
@@ -450,18 +445,18 @@ function App() {
               <div className="docs-content" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
                 <h3>By bxzex</h3>
                 <p>
-                  SONIC is a private AI layer built by <strong>bxzex</strong>. It runs entirely on your hardware—no cloud, no tracking, and 100% free.
+                  SONIC is a private intelligence layer built by <strong>bxzex</strong>. It runs entirely on your hardware—no cloud, no tracking, and 100% free.
                 </p>
 
                 <h4>The Essentials</h4>
                 <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  <li><strong>Local Engine:</strong> High-performance, offline intelligence running directly on your hardware.</li>
-                  <li><strong>SONIC Core:</strong> Using the latest state-of-the-art neural architecture for advanced reasoning.</li>
+                  <li><strong>Local Intelligence:</strong> High-performance, offline processing synced directly to your device.</li>
+                  <li><strong>SONIC Core:</strong> State-of-the-art neural architecture optimized for private reasoning.</li>
                   <li><strong>Privacy Standard:</strong> Your chats and data never leave your hardware.</li>
                 </ul>
 
                 <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                  <h4 style={{ marginBottom: '1rem' }}>Connect with bxzex</h4>
+                  <h4 style={{ marginBottom: '1rem' }}>Connect</h4>
                   <div className="social-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                     <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
                     <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
@@ -471,7 +466,7 @@ function App() {
                 </div>
               </div>
 
-              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close Docs</button>
+              <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close</button>
             </div>
           </div>
         )
