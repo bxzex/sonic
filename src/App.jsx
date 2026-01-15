@@ -463,7 +463,7 @@ function App() {
                 </ul>
 
                 <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                  <h4 style={{ marginBottom: '1rem' }}>Connect</h4>
+                  <h4 style={{ marginBottom: '1rem' }}>bxzex Social Media</h4>
                   <div className="social-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
                     <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
                     <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
