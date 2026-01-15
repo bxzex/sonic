@@ -51,6 +51,7 @@ function App() {
   }, []);
 
   const messagesEndRef = useRef(null);
+  const textareaRef = useRef(null);
   const { processQuery, loading, progress, loadCore } = useEngine();
 
   useEffect(() => {
@@ -110,6 +111,9 @@ function App() {
         : c
     ));
     setInput('');
+    if (textareaRef.current) {
+      textareaRef.current.style.height = 'auto';
+    }
 
     try {
       const aiPlaceholder = { role: 'assistant', content: '' };
@@ -259,19 +263,21 @@ function App() {
                   style={{
                     padding: '0.4rem 0.8rem',
                     fontSize: '0.8rem',
-                    background: 'var(--accent-primary)',
+                    background: 'var(--brand-gradient)',
                     border: 'none',
                     color: 'white',
-                    borderRadius: '8px',
+                    borderRadius: '10px',
                     display: 'flex',
                     alignItems: 'center',
                     gap: '6px',
-                    minWidth: isInitializing ? '140px' : 'auto',
-                    justifyContent: 'center'
+                    minWidth: isInitializing ? '150px' : 'auto',
+                    justifyContent: 'center',
+                    fontWeight: 600,
+                    boxShadow: '0 4px 15px rgba(139, 92, 246, 0.3)'
                   }}
                 >
                   <Download size={14} />
-                  {isInitializing ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : 'Initialize AI'}
+                  {isInitializing ? `${progress?.status || 'Active'} ${progress?.percent || 0}%` : 'Sync Intelligence'}
                 </button>
               ) : (
                 <div className="ready-badge">
@@ -284,9 +290,9 @@ function App() {
                 {isInitializing ? (
                   <strong>Syncing...</strong>
                 ) : !activeNodes[SONIC_CORE] ? (
-                  <><strong>Local Setup:</strong> One-time sync for private access.</>
+                  <><strong>Local Setup:</strong> Hardware-native sync.</>
                 ) : (
-                  <strong>Stored in local hardware.</strong>
+                  <strong>Secured on local hardware.</strong>
                 )}
               </span>
             </div>
@@ -367,6 +373,7 @@ function App() {
         <footer className="input-area">
           <div className="input-container glass-panel">
             <textarea
+              ref={textareaRef}
               placeholder="Enter prompt..."
               rows={1}
               value={input}

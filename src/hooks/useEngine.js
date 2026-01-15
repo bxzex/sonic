@@ -22,11 +22,11 @@ export const useEngine = () => {
             const context = await webllm.CreateMLCEngine(coreId, {
                 initProgressCallback: (report) => {
                     let status = "Preparing";
-                    if (report.text.includes("Fetching")) status = "Optimizing";
-                    if (report.text.includes("Loading")) status = "Syncing";
-                    if (report.text.includes("Finish")) status = "Finalizing";
+                    if (report.text.includes("Fetching")) status = "Syncing Core";
+                    if (report.text.includes("Loading")) status = "Activating";
+                    if (report.text.includes("Finish")) status = "Readying";
 
-                    if (report.progress === 1) status = "Active";
+                    if (report.progress === 1) status = "Ready";
 
                     const progressInfo = {
                         percent: Math.round(report.progress * 100),
