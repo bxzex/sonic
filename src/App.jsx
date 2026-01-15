@@ -21,8 +21,8 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Phi-3.5-vision-instruct-q4f16_1-MLC');
-  const SUPER_MODEL = 'Phi-3.5-vision-instruct-q4f16_1-MLC';
+  const [model, setModel] = useState('Phi-3.5-vision-instruct-q4f32_1-MLC');
+  const SUPER_MODEL = 'Phi-3.5-vision-instruct-q4f32_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
