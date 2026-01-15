@@ -4,6 +4,8 @@ SONIC is an open-source project that brings powerful AI models directly to your 
 
 ## Features
 
+- **Multimodal Support**: Upload images and chat about them using **SONIC 4 (Vision)**.
+- **Speech-to-Text**: Just click the mic icon to talk directly to the AI.
 - **100% Private**: Your conversations stay on your device.
 - **Offline Capable**: Once the model is initialized, you can use SONIC even without an internet connection.
 - **Fast and Secure**: Powered by your own graphics card and processor for near-instant responses.
