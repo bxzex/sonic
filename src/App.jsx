@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download, Mic, Image as ImageIcon, Camera } from 'lucide-react';
+import { Send, Zap, Shield, Cpu, Share2, X, Instagram, Linkedin, Github, Globe, User, Download } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import Logo from './components/Logo';
@@ -21,19 +21,11 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Phi-3.5-vision-instruct-q4f32_1-MLC');
-  const SUPER_MODEL = 'Phi-3.5-vision-instruct-q4f32_1-MLC';
+  const [model, setModel] = useState('Llama-3.2-3B-Instruct-q4f16_1-MLC');
+  const SUPER_MODEL = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
-  const [voiceOutput, setVoiceOutput] = useState(() => {
-    const saved = localStorage.getItem('sonic_voice_output');
-    return saved ? JSON.parse(saved) : false;
-  });
-
-  useEffect(() => {
-    localStorage.setItem('sonic_voice_output', JSON.stringify(voiceOutput));
-  }, [voiceOutput]);
 
   const [downloadedModels, setDownloadedModels] = useState(() => {
     const saved = localStorage.getItem('sonic_downloaded_models');
@@ -44,17 +36,11 @@ function App() {
     localStorage.setItem('sonic_downloaded_models', JSON.stringify(downloadedModels));
   }, [downloadedModels]);
 
-  const [isListening, setIsListening] = useState(false);
-  const [pendingImages, setPendingImages] = useState([]);
-  const [showCamera, setShowCamera] = useState(false);
-  const videoRef = useRef(null);
-  const canvasRef = useRef(null);
-  const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
   const getModelName = (id) => {
-    if (id === SUPER_MODEL) return 'SONIC Superbrain';
+    if (id === SUPER_MODEL) return 'SONIC Intelligence';
     return 'SONIC';
   };
 
@@ -84,13 +70,13 @@ function App() {
     if (isWarmup) {
       try {
         if (downloadedModels[SUPER_MODEL]) {
-          alert('SONIC Superbrain is already downloaded and ready.');
+          alert('SONIC Intelligence is already downloaded and ready.');
           return;
         }
 
         await initWebLLM(SUPER_MODEL);
         setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
-        alert('SONIC Superbrain is now ready for offline use.');
+        alert('SONIC Intelligence is now ready for offline use.');
         return;
       } catch (e) {
         alert(e.message);
@@ -98,7 +84,7 @@ function App() {
       }
     }
 
-    const userMessage = { role: 'user', content: input, images: pendingImages };
+    const userMessage = { role: 'user', content: input };
     const updatedMessages = [...activeChat.messages, userMessage];
 
     setChats(prev => prev.map(c =>
@@ -107,7 +93,6 @@ function App() {
         : c
     ));
     setInput('');
-    setPendingImages([]);
 
     try {
       const aiPlaceholder = { role: 'assistant', content: '' };
@@ -117,7 +102,7 @@ function App() {
           : c
       ));
 
-      const fullContent = await sendMessage(updatedMessages, 'browser', SUPER_MODEL, (content) => {
+      await sendMessage(updatedMessages, 'browser', SUPER_MODEL, (content) => {
         setDownloadedModels(prev => ({ ...prev, [SUPER_MODEL]: true }));
         setChats(prev => prev.map(c =>
           c.id === activeChatId
@@ -131,19 +116,9 @@ function App() {
             : c
         ));
       });
-
-      if (voiceOutput && fullContent) {
-        const utterance = new SpeechSynthesisUtterance(fullContent);
-        window.speechSynthesis.speak(utterance);
-      }
     } catch (err) {
       alert(err.message);
     }
-  };
-
-  const handleWarmup = async () => {
-    if (loading) return;
-    await handleSend(true);
   };
 
   const createNewChat = () => {
@@ -211,79 +186,6 @@ function App() {
     setShowSettings(false);
   };
 
-  const handleMicClick = () => {
-    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRecognition) {
-      alert('Speech recognition not supported in this browser.');
-      return;
-    }
-
-    if (isListening) return;
-
-    const recognition = new SpeechRecognition();
-    recognition.continuous = false;
-    recognition.interimResults = false;
-    recognition.lang = 'en-US';
-
-    recognition.onstart = () => setIsListening(true);
-    recognition.onend = () => setIsListening(false);
-    recognition.onresult = (event) => {
-      const transcript = event.results[0][0].transcript;
-      setInput(prev => prev + (prev ? ' ' : '') + transcript);
-    };
-    recognition.onerror = () => setIsListening(false);
-
-    recognition.start();
-  };
-
-  const handleImageUpload = (e) => {
-    const files = Array.from(e.target.files);
-    files.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        setPendingImages(prev => [...prev, reader.result]);
-      };
-      reader.readAsDataURL(file);
-    });
-  };
-
-  const removeImage = (index) => {
-    setPendingImages(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const startCamera = async () => {
-    setShowCamera(true);
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
-      if (videoRef.current) {
-        videoRef.current.srcObject = stream;
-      }
-    } catch (err) {
-      alert("Camera access denied or not available.");
-      setShowCamera(false);
-    }
-  };
-
-  const stopCamera = () => {
-    const stream = videoRef.current?.srcObject;
-    const tracks = stream?.getTracks();
-    tracks?.forEach(track => track.stop());
-    setShowCamera(false);
-  };
-
-  const capturePhoto = () => {
-    const video = videoRef.current;
-    const canvas = canvasRef.current;
-    if (video && canvas) {
-      canvas.width = video.videoWidth;
-      canvas.height = video.videoHeight;
-      canvas.getContext('2d').drawImage(video, 0, 0);
-      const photo = canvas.toDataURL('image/jpeg');
-      setPendingImages(prev => [...prev, photo]);
-      stopCamera();
-    }
-  };
-
   return (
     <div className="app-container">
       <Sidebar
@@ -306,7 +208,7 @@ function App() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              <option value={SUPER_MODEL}>SONIC Superbrain (Text + Vision)</option>
+              <option value={SUPER_MODEL}>SONIC Intelligence (Text Only)</option>
             </select>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -369,14 +271,9 @@ function App() {
                   <p>Your data stays on your device. Local processing, zero cloud interaction.</p>
                 </div>
                 <div className="feature-card glass-panel">
-                  <ImageIcon size={24} color="var(--accent-secondary)" />
-                  <h3>Sonic Vision</h3>
-                  <p>Multimodal intelligence—upload images or snap photos for instant analysis.</p>
-                </div>
-                <div className="feature-card glass-panel">
-                  <Mic size={24} color="var(--accent-secondary)" />
-                  <h3>Voice Sync</h3>
-                  <p>Talk to SONIC naturally with speech-to-text and text-to-speech feedback.</p>
+                  <Cpu size={24} color="var(--accent-secondary)" />
+                  <h3>Local Intelligence</h3>
+                  <p>Runs directly on your computer. High-performance, zero latency processing.</p>
                 </div>
                 <div className="feature-card glass-panel">
                   <Zap size={24} color="var(--accent-secondary)" />
@@ -419,40 +316,7 @@ function App() {
         </div>
 
         <footer className="input-area">
-          {pendingImages.length > 0 && (
-            <div className="image-previews">
-              {pendingImages.map((img, i) => (
-                <div key={i} className="preview-container">
-                  <img src={img} alt="Preview" />
-                  <button onClick={() => removeImage(i)} className="remove-img"><X size={12} /></button>
-                </div>
-              ))}
-            </div>
-          )}
           <div className="input-container glass-panel">
-            <button
-              className="upload-icon-btn"
-              onClick={() => fileInputRef.current?.click()}
-              title="Upload Images"
-            >
-              <ImageIcon size={20} />
-            </button>
-            <button
-              className="upload-icon-btn"
-              onClick={startCamera}
-              title="Snap Photo"
-            >
-              <Camera size={20} />
-            </button>
-            <input
-              type="file"
-              ref={fileInputRef}
-              hidden
-              multiple
-              accept="image/*"
-              onChange={handleImageUpload}
-            />
-
             <textarea
               placeholder="Enter prompt..."
               rows={1}
@@ -471,17 +335,9 @@ function App() {
             />
 
             <button
-              className={`mic-btn ${isListening ? 'listening' : ''}`}
-              onClick={handleMicClick}
-              title="Speech to Text"
-            >
-              <Mic size={20} />
-            </button>
-
-            <button
               className="send-btn"
               onClick={handleSend}
-              disabled={loading || (!input.trim() && pendingImages.length === 0)}
+              disabled={loading || !input.trim()}
             >
               <Zap size={18} />
             </button>
@@ -522,26 +378,11 @@ function App() {
                     )}
                   </div>
                   <label className="upload-btn">
-                    <Upload size={16} />
+                    <Download size={16} />
                     Upload Photo
                     <input type="file" hidden accept="image/*" onChange={handleAvatarChange} />
                   </label>
                 </div>
-              </div>
-
-              <div className="setting-item">
-                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
-                  <input
-                    type="checkbox"
-                    checked={voiceOutput}
-                    onChange={(e) => setVoiceOutput(e.target.checked)}
-                    style={{ width: '18px', height: '18px' }}
-                  />
-                  Voice Output (Text-to-Speech)
-                </label>
-                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
-                  Enable this to have SONIC read responses aloud.
-                </p>
               </div>
 
               <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleSaveSettings}>Update Identity</button>
@@ -568,9 +409,8 @@ function App() {
                 <h4>The Essentials</h4>
                 <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
                   <li><strong>Local Engine:</strong> High-performance, offline intelligence running on your device via WebGPU.</li>
-                  <li><strong>Multimodal Vision:</strong> Effortlessly analyze images and photos with integrated vision support.</li>
-                  <li><strong>Voice Intelligence:</strong> Natural speech-to-text and adaptive voice output for hands-free interactions.</li>
-                  <li><strong>Privacy Standard:</strong> Your chats and media never leave your hardware.</li>
+                  <li><strong>Llama 3.2 Power:</strong> Using the latest state-of-the-art weights for local reasoning.</li>
+                  <li><strong>Privacy Standard:</strong> Your chats and data never leave your hardware.</li>
                 </ul>
 
                 <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
@@ -585,26 +425,6 @@ function App() {
               </div>
 
               <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close Docs</button>
-            </div>
-          </div>
-        )
-      }
-      {
-        showCamera && (
-          <div className="modal-overlay" onClick={stopCamera}>
-            <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px', textAlign: 'center' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-                <h3 className="brand-gradient" style={{ margin: 0 }}>Snap a Photo</h3>
-                <X size={20} className="action-icon" onClick={stopCamera} style={{ opacity: 1 }} />
-              </div>
-              <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', background: '#000', marginBottom: '1.5rem' }}>
-                <video ref={videoRef} autoPlay playsInline style={{ width: '100%', display: 'block' }} />
-                <canvas ref={canvasRef} style={{ display: 'none' }} />
-              </div>
-              <div style={{ display: 'flex', gap: '1rem' }}>
-                <button className="new-chat-btn" style={{ flex: 1 }} onClick={capturePhoto}>Capture</button>
-                <button className="new-chat-btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)' }} onClick={stopCamera}>Cancel</button>
-              </div>
             </div>
           </div>
         )

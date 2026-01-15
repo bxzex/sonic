@@ -21,7 +21,6 @@ export const useEngine = () => {
         try {
             const engine = await webllm.CreateMLCEngine(modelId, {
                 initProgressCallback: (report) => {
-                    // Simplified status for better UX
                     let status = "Starting";
                     if (report.text.includes("Fetching")) status = "Downloading";
                     if (report.text.includes("Loading")) status = "Loading";
@@ -57,25 +56,8 @@ export const useEngine = () => {
         try {
             const engine = await initWebLLM(model);
 
-            // Format messages for potentially multimodal models
-            const formattedMessages = messages.map(msg => {
-                if (msg.images && msg.images.length > 0) {
-                    return {
-                        role: msg.role,
-                        content: [
-                            { type: "text", text: msg.content },
-                            ...msg.images.map(img => ({
-                                type: "image_url",
-                                image_url: { url: img }
-                            }))
-                        ]
-                    };
-                }
-                return { role: msg.role, content: msg.content };
-            });
-
             const chunks = await engine.chat.completions.create({
-                messages: formattedMessages,
+                messages: messages.map(msg => ({ role: msg.role, content: msg.content })),
                 stream: true,
             });
 

@@ -15,43 +15,29 @@ const ChatMessage = ({ message }) => {
                 {!message.content && !isUser ? (
                     <div className="shimmer-bg" style={{ height: '1.2em', width: '60%', borderRadius: '4px' }}></div>
                 ) : (
-                    <>
-                        <ReactMarkdown
-                            components={{
-                                code({ node, inline, className, children, ...props }) {
-                                    const match = /language-(\w+)/.exec(className || '');
-                                    return !inline && match ? (
-                                        <SyntaxHighlighter
-                                            style={vscDarkPlus}
-                                            language={match[1]}
-                                            PreTag="div"
-                                            {...props}
-                                        >
-                                            {String(children).replace(/\n$/, '')}
-                                        </SyntaxHighlighter>
-                                    ) : (
-                                        <code className={className} {...props}>
-                                            {children}
-                                        </code>
-                                    );
-                                }
-                            }}
-                        >
-                            {message.content}
-                        </ReactMarkdown>
-                        {message.images && message.images.length > 0 && (
-                            <div className="message-images" style={{ display: 'flex', flexWrap: 'wrap', gap: '10px', marginTop: '10px' }}>
-                                {message.images.map((img, i) => (
-                                    <img
-                                        key={i}
-                                        src={img}
-                                        alt="Uploaded"
-                                        style={{ maxWidth: '300px', maxHeight: '300px', borderRadius: '12px', border: '1px solid var(--border-color)' }}
-                                    />
-                                ))}
-                            </div>
-                        )}
-                    </>
+                    <ReactMarkdown
+                        components={{
+                            code({ node, inline, className, children, ...props }) {
+                                const match = /language-(\w+)/.exec(className || '');
+                                return !inline && match ? (
+                                    <SyntaxHighlighter
+                                        style={vscDarkPlus}
+                                        language={match[1]}
+                                        PreTag="div"
+                                        {...props}
+                                    >
+                                        {String(children).replace(/\n$/, '')}
+                                    </SyntaxHighlighter>
+                                ) : (
+                                    <code className={className} {...props}>
+                                        {children}
+                                    </code>
+                                );
+                            }
+                        }}
+                    >
+                        {message.content}
+                    </ReactMarkdown>
                 )}
             </div>
         </div>
