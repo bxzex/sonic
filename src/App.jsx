@@ -225,6 +225,13 @@ function App() {
         onClose={() => setIsSidebarOpen(false)}
       />
 
+      {isSidebarOpen && (
+        <div
+          className="mobile-sidebar-overlay"
+          onClick={() => setIsSidebarOpen(false)}
+        />
+      )}
+
       <main className={`chat-main ${isSidebarOpen ? 'sidebar-open' : ''}`}>
         <header className="chat-header">
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
