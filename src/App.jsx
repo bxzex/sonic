@@ -20,8 +20,8 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Llama-3.2-11B-Vision-Instruct-q4f16_1-MLC');
-  const SUPER_MODEL = 'Llama-3.2-11B-Vision-Instruct-q4f16_1-MLC';
+  const [model, setModel] = useState('Llama-3.2-11B-Vision-Instruct-q4f16_1-vllm-MLC');
+  const SUPER_MODEL = 'Llama-3.2-11B-Vision-Instruct-q4f16_1-vllm-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
