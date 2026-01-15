@@ -377,31 +377,26 @@ function App() {
             </div>
 
             <div className="docs-content" style={{ maxHeight: '60vh', overflowY: 'auto', paddingRight: '1rem' }}>
-              <h3>Created by bxzex</h3>
+              <h3>By bxzex</h3>
               <p>
-                SONIC is an open-source AI project created by <strong>bxzex</strong>. This platform was built for those who want powerful AI without tracking or expensive subscriptions.
-              </p>
-              <p>
-                Our mission is to provide a private AI layer that runs entirely on your own device. You own the computer, you own the models, and you own your privacy.
+                SONIC is a private AI layer built by <strong>bxzex</strong>. It runs entirely on your hardware—no cloud, no tracking, and 100% free.
               </p>
 
-              <h4>How it Works</h4>
-              <p>SONIC uses your device's own power to run AI locally. Unlike other systems, your data never leaves your computer.</p>
+              <h4>The Essentials</h4>
+              <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
+                <li><strong>Local Engine:</strong> Uses your device's GPU/CPU via WebGPU for fast, offline intelligence.</li>
+                <li><strong>One-Time Setup:</strong> Models are saved to your browser storage once for permanent offline access.</li>
+                <li><strong>Total Privacy:</strong> Your chats never leave your machine. Ever.</li>
+              </ul>
 
-              <h4>1. Local Engine</h4>
-              <p>We use your graphics card and processor to run complex AI models directly in your browser. This keeps everything fast and private.</p>
-
-              <h4>2. Automatic Model Setup</h4>
-              <p>When you start, SONIC downloads and saves the AI models directly to your device storage. This allows the app to work offline at peak speed.</p>
-
-              <h4>3. Privacy First</h4>
-              <p>Every chat occurs in a secure environment on your machine. SONIC is built for private and secure AI for everyone.</p>
-
-              <div className="social-links" style={{ marginTop: '2rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
-                <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
-                <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
-                <a href="https://www.instagram.com/bxzex/" target="_blank" className="social-link"><Instagram size={18} /> Instagram</a>
-                <a href="https://www.linkedin.com/in/bxzex/" target="_blank" className="social-link"><Linkedin size={18} /> LinkedIn</a>
+              <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
+                <h4 style={{ marginBottom: '1rem' }}>Connect with bxzex</h4>
+                <div className="social-links" style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
+                  <a href="http://bxzex.com/" target="_blank" className="social-link"><Globe size={18} /> Website</a>
+                  <a href="https://github.com/bxzex" target="_blank" className="social-link"><Github size={18} /> GitHub</a>
+                  <a href="https://www.instagram.com/bxzex/" target="_blank" className="social-link"><Instagram size={18} /> Instagram</a>
+                  <a href="https://www.linkedin.com/in/bxzex/" target="_blank" className="social-link"><Linkedin size={18} /> LinkedIn</a>
+                </div>
               </div>
             </div>
 
