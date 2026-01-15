@@ -21,8 +21,8 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Llama-3.2-3B-Instruct-q4f16_1-MLC');
-  const SUPER_MODEL = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
+  const [model, setModel] = useState('Llama-3.2-3B-Instruct-q4f32_1-MLC');
+  const SUPER_MODEL = 'Llama-3.2-3B-Instruct-q4f32_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
@@ -30,8 +30,10 @@ function App() {
   const [isInitializing, setIsInitializing] = useState(false);
 
   const [downloadedModels, setDownloadedModels] = useState(() => {
-    const saved = localStorage.getItem('sonic_downloaded_models');
-    return saved ? JSON.parse(saved) : {};
+    try {
+      const saved = localStorage.getItem('sonic_downloaded_models');
+      return saved ? JSON.parse(saved) : {};
+    } catch { return {}; }
   });
 
   useEffect(() => {
@@ -247,34 +249,42 @@ function App() {
             </select>
 
             <div className="status-container">
-              <button
-                className="share-btn"
-                onClick={() => handleSend(true)}
-                disabled={loading}
-                style={{
-                  padding: '0.4rem 0.8rem',
-                  fontSize: '0.8rem',
-                  background: downloadedModels[SUPER_MODEL] ? 'var(--accent-secondary)' : 'var(--accent-primary)',
-                  border: 'none',
-                  color: downloadedModels[SUPER_MODEL] ? '#020617' : 'white',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '6px',
-                  minWidth: loading ? '120px' : 'auto',
-                  justifyContent: 'center'
-                }}
-              >
-                <Download size={14} />
-                {isInitializing ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : downloadedModels[SUPER_MODEL] ? 'Downloaded' : 'Initialize AI'}
-              </button>
+              {!downloadedModels[SUPER_MODEL] || isInitializing ? (
+                <button
+                  className="share-btn"
+                  onClick={() => handleSend(true)}
+                  disabled={loading || isInitializing}
+                  style={{
+                    padding: '0.4rem 0.8rem',
+                    fontSize: '0.8rem',
+                    background: 'var(--accent-primary)',
+                    border: 'none',
+                    color: 'white',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    minWidth: isInitializing ? '140px' : 'auto',
+                    justifyContent: 'center'
+                  }}
+                >
+                  <Download size={14} />
+                  {isInitializing ? `${progress?.status || 'Active'}: ${progress?.percent || 0}%` : 'Initialize AI'}
+                </button>
+              ) : (
+                <div className="ready-badge">
+                  <Zap size={14} />
+                  <span>Ready State</span>
+                </div>
+              )}
+
               <span className="desktop-only" style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {isInitializing ? (
                   <strong>Target: {getModelName(progress?.modelId)}</strong>
-                ) : downloadedModels[SUPER_MODEL] ? (
-                  <strong>Ready for offline use.</strong>
+                ) : !downloadedModels[SUPER_MODEL] ? (
+                  <><strong>Local Setup:</strong> One-time download for offline access.</>
                 ) : (
-                  <><strong>Offline Support:</strong> One-time setup saves models locally.</>
+                  <strong>Stored in local hardware.</strong>
                 )}
               </span>
             </div>
@@ -283,7 +293,7 @@ function App() {
           <div style={{ display: 'flex', gap: '8px' }}>
             <button className="share-btn hide-mobile" onClick={handleShare}>
               <Share2 size={16} />
-              Share SONIC
+              Share
             </button>
           </div>
         </header>
