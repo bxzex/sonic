@@ -1,4 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download, Mic, Image as ImageIcon, Camera } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
@@ -364,18 +365,23 @@ function App() {
               <div className="features-grid">
                 <div className="feature-card glass-panel">
                   <Shield size={24} color="var(--accent-secondary)" />
-                  <h3>Private AI</h3>
-                  <p>Your data stays on your device. No trackers, no cloud, no compromise.</p>
+                  <h3>100% Private</h3>
+                  <p>Your data stays on your device. Local processing, zero cloud interaction.</p>
                 </div>
                 <div className="feature-card glass-panel">
-                  <Cpu size={24} color="var(--accent-secondary)" />
-                  <h3>Local Processing</h3>
-                  <p>Runs directly on your computer. High-performance, zero latency.</p>
+                  <ImageIcon size={24} color="var(--accent-secondary)" />
+                  <h3>Sonic Vision</h3>
+                  <p>Multimodal intelligence—upload images or snap photos for instant analysis.</p>
+                </div>
+                <div className="feature-card glass-panel">
+                  <Mic size={24} color="var(--accent-secondary)" />
+                  <h3>Voice Sync</h3>
+                  <p>Talk to SONIC naturally with speech-to-text and text-to-speech feedback.</p>
                 </div>
                 <div className="feature-card glass-panel">
                   <Zap size={24} color="var(--accent-secondary)" />
-                  <h3>Fast Response</h3>
-                  <p>Experience the speed of local processing with zero network lag.</p>
+                  <h3>Extreme Speed</h3>
+                  <p>Powered by WebGPU for high-performance, real-time AI responses.</p>
                 </div>
               </div>
               <p style={{ color: 'rgba(255,255,255,0.3)', fontSize: '0.7rem', marginTop: '1.5rem', fontStyle: 'italic' }}>
@@ -389,16 +395,25 @@ function App() {
               </div>
             </div>
           ) : (
-            <>
-              {activeChat.messages.map((m, i) => (
-                <ChatMessage key={i} message={m} />
-              ))}
+            <div className="messages-stream">
+              <AnimatePresence>
+                {activeChat.messages.map((m, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ duration: 0.3 }}
+                  >
+                    <ChatMessage message={m} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
               {loading && !activeChat.messages[activeChat.messages.length - 1]?.content && (
                 <div style={{ textAlign: 'center', padding: '2rem' }}>
                   <div className="shimmer-bg" style={{ height: '4px', width: '100px', margin: '0 auto', borderRadius: '100px' }}></div>
                 </div>
               )}
-            </>
+            </div>
           )}
           <div ref={messagesEndRef} />
         </div>
@@ -552,9 +567,10 @@ function App() {
 
                 <h4>The Essentials</h4>
                 <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-muted)', lineHeight: '1.6' }}>
-                  <li><strong>Local Engine:</strong> Uses your device's GPU/CPU via WebGPU for fast, offline intelligence.</li>
-                  <li><strong>One-Time Setup:</strong> Models are saved to your browser storage once for permanent offline access.</li>
-                  <li><strong>Total Privacy:</strong> Your chats never leave your machine. Ever.</li>
+                  <li><strong>Local Engine:</strong> High-performance, offline intelligence running on your device via WebGPU.</li>
+                  <li><strong>Multimodal Vision:</strong> Effortlessly analyze images and photos with integrated vision support.</li>
+                  <li><strong>Voice Intelligence:</strong> Natural speech-to-text and adaptive voice output for hands-free interactions.</li>
+                  <li><strong>Privacy Standard:</strong> Your chats and media never leave your hardware.</li>
                 </ul>
 
                 <div style={{ marginTop: '2rem', borderTop: '1px solid var(--border-color)', paddingTop: '1.5rem' }}>
