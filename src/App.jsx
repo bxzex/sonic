@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from 'react';
-import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download, Mic, Image as ImageIcon } from 'lucide-react';
+import { Send, Zap, Shield, Cpu, Share2, X, Upload, Instagram, Linkedin, Github, Globe, User, Download, Mic, Image as ImageIcon, Camera } from 'lucide-react';
 import Sidebar from './components/Sidebar';
 import ChatMessage from './components/ChatMessage';
 import Logo from './components/Logo';
@@ -20,13 +20,27 @@ function App() {
   const [chats, setChats] = useState(getInitialChats);
   const [activeChatId, setActiveChatId] = useState(chats[0].id);
   const [input, setInput] = useState('');
-  const [model, setModel] = useState('Llama-3.1-8B-Instruct-q4f32_1-MLC');
+  const [model, setModel] = useState('auto');
+  const TEXT_MODEL = 'Llama-3.2-3B-Instruct-q4f16_1-MLC';
+  const VISION_MODEL = 'Phi-3.5-vision-instruct-q4f16_1-MLC';
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
+  const [voiceOutput, setVoiceOutput] = useState(() => {
+    const saved = localStorage.getItem('sonic_voice_output');
+    return saved ? JSON.parse(saved) : false;
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sonic_voice_output', JSON.stringify(voiceOutput));
+  }, [voiceOutput]);
+
   const [downloadedModels, setDownloadedModels] = useState({});
   const [isListening, setIsListening] = useState(false);
   const [pendingImages, setPendingImages] = useState([]);
+  const [showCamera, setShowCamera] = useState(false);
+  const videoRef = useRef(null);
+  const canvasRef = useRef(null);
   const fileInputRef = useRef(null);
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
@@ -55,11 +69,13 @@ function App() {
     if ((!input.trim() && !isWarmup) || loading) return;
 
     if (isWarmup) {
-      // This is a warmup call
       try {
-        await initWebLLM(model);
-        setDownloadedModels(prev => ({ ...prev, [model]: true }));
-        alert('Model downloaded and ready. You can now chat offline.');
+        const modelsToInit = model === 'auto' ? [TEXT_MODEL, VISION_MODEL] : [model];
+        for (const m of modelsToInit) {
+          await initWebLLM(m);
+          setDownloadedModels(prev => ({ ...prev, [m]: true }));
+        }
+        alert('SONIC Intelligence is now downloaded and ready for offline use.');
         return;
       } catch (e) {
         alert(e.message);
@@ -86,8 +102,13 @@ function App() {
           : c
       ));
 
-      await sendMessage(updatedMessages, 'browser', model, (content) => {
-        setDownloadedModels(prev => ({ ...prev, [model]: true }));
+      let selectedModel = model;
+      if (model === 'auto') {
+        selectedModel = (pendingImages.length > 0 || updatedMessages.some(m => m.images?.length > 0)) ? VISION_MODEL : TEXT_MODEL;
+      }
+
+      const fullContent = await sendMessage(updatedMessages, 'browser', selectedModel, (content) => {
+        setDownloadedModels(prev => ({ ...prev, [selectedModel]: true }));
         setChats(prev => prev.map(c =>
           c.id === activeChatId
             ? {
@@ -100,6 +121,11 @@ function App() {
             : c
         ));
       });
+
+      if (voiceOutput && fullContent) {
+        const utterance = new SpeechSynthesisUtterance(fullContent);
+        window.speechSynthesis.speak(utterance);
+      }
     } catch (err) {
       alert(err.message);
     }
@@ -215,6 +241,39 @@ function App() {
     setPendingImages(prev => prev.filter((_, i) => i !== index));
   };
 
+  const startCamera = async () => {
+    setShowCamera(true);
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+    } catch (err) {
+      alert("Camera access denied or not available.");
+      setShowCamera(false);
+    }
+  };
+
+  const stopCamera = () => {
+    const stream = videoRef.current?.srcObject;
+    const tracks = stream?.getTracks();
+    tracks?.forEach(track => track.stop());
+    setShowCamera(false);
+  };
+
+  const capturePhoto = () => {
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (video && canvas) {
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      canvas.getContext('2d').drawImage(video, 0, 0);
+      const photo = canvas.toDataURL('image/jpeg');
+      setPendingImages(prev => [...prev, photo]);
+      stopCamera();
+    }
+  };
+
   return (
     <div className="app-container">
       <Sidebar
@@ -237,10 +296,9 @@ function App() {
               value={model}
               onChange={(e) => setModel(e.target.value)}
             >
-              <option value="Llama-3.1-8B-Instruct-q4f32_1-MLC">SONIC 1 (Standard)</option>
-              <option value="Qwen2-7B-Instruct-q4f32_1-MLC">SONIC 2 (Pro)</option>
-              <option value="Mistral-7B-Instruct-v0.3-q4f32_1-MLC">SONIC 3 (Lite)</option>
-              <option value="Llava-v1.5-7b-q4f32_1-MLC">SONIC 4 (Vision)</option>
+              <option value="auto">SONIC Intelligence (Multimodal)</option>
+              <option value="Llama-3.2-3B-Instruct-q4f16_1-MLC">SONIC 2 (Fast Text)</option>
+              <option value="Phi-3.5-vision-instruct-q4f16_1-MLC">SONIC 3 (Vision HD)</option>
             </select>
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -251,9 +309,9 @@ function App() {
                 style={{
                   padding: '0.4rem 0.8rem',
                   fontSize: '0.8rem',
-                  background: downloadedModels[model] ? 'var(--accent-secondary)' : 'var(--accent-primary)',
+                  background: (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'var(--accent-secondary)' : 'var(--accent-primary)',
                   border: 'none',
-                  color: downloadedModels[model] ? '#020617' : 'white',
+                  color: (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? '#020617' : 'white',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
@@ -263,12 +321,12 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `Initializing ${progress?.percent || 0}%` : downloadedModels[model] ? 'Downloaded' : 'Initialize AI'}
+                {loading ? `Initializing ${progress?.percent || 0}%` : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? 'Downloaded' : 'Initialize AI'}
               </button>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {loading ? (
                   <strong>Status: {progress?.status || 'Active'}</strong>
-                ) : downloadedModels[model] ? (
+                ) : (model === 'auto' ? (downloadedModels[TEXT_MODEL] && downloadedModels[VISION_MODEL]) : downloadedModels[model]) ? (
                   <strong>Ready for offline use.</strong>
                 ) : (
                   <><strong>Offline Support:</strong> One-time setup saves models locally.</>
@@ -357,6 +415,13 @@ function App() {
             >
               <ImageIcon size={20} />
             </button>
+            <button
+              className="upload-icon-btn"
+              onClick={startCamera}
+              title="Snap Photo"
+            >
+              <Camera size={20} />
+            </button>
             <input
               type="file"
               ref={fileInputRef}
@@ -442,6 +507,21 @@ function App() {
                 </div>
               </div>
 
+              <div className="setting-item">
+                <label style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', cursor: 'pointer' }}>
+                  <input
+                    type="checkbox"
+                    checked={voiceOutput}
+                    onChange={(e) => setVoiceOutput(e.target.checked)}
+                    style={{ width: '18px', height: '18px' }}
+                  />
+                  Voice Output (Text-to-Speech)
+                </label>
+                <p style={{ fontSize: '0.7rem', color: 'var(--text-muted)', marginTop: '0.4rem' }}>
+                  Enable this to have SONIC read responses aloud.
+                </p>
+              </div>
+
               <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={handleSaveSettings}>Update Identity</button>
             </div>
           </div>
@@ -482,6 +562,26 @@ function App() {
               </div>
 
               <button className="new-chat-btn" style={{ width: '100%', marginTop: '2rem' }} onClick={() => setShowDocs(false)}>Close Docs</button>
+            </div>
+          </div>
+        )
+      }
+      {
+        showCamera && (
+          <div className="modal-overlay" onClick={stopCamera}>
+            <div className="modal-content glass-panel" onClick={e => e.stopPropagation()} style={{ maxWidth: '640px', textAlign: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
+                <h3 className="brand-gradient" style={{ margin: 0 }}>Snap a Photo</h3>
+                <X size={20} className="action-icon" onClick={stopCamera} style={{ opacity: 1 }} />
+              </div>
+              <div style={{ position: 'relative', borderRadius: '16px', overflow: 'hidden', background: '#000', marginBottom: '1.5rem' }}>
+                <video ref={videoRef} autoPlay playsInline style={{ width: '100%', display: 'block' }} />
+                <canvas ref={canvasRef} style={{ display: 'none' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '1rem' }}>
+                <button className="new-chat-btn" style={{ flex: 1 }} onClick={capturePhoto}>Capture</button>
+                <button className="new-chat-btn" style={{ flex: 1, background: 'rgba(255,255,255,0.05)' }} onClick={stopCamera}>Cancel</button>
+              </div>
             </div>
           </div>
         )
