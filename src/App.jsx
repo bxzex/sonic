@@ -35,7 +35,15 @@ function App() {
     localStorage.setItem('sonic_voice_output', JSON.stringify(voiceOutput));
   }, [voiceOutput]);
 
-  const [downloadedModels, setDownloadedModels] = useState({});
+  const [downloadedModels, setDownloadedModels] = useState(() => {
+    const saved = localStorage.getItem('sonic_downloaded_models');
+    return saved ? JSON.parse(saved) : {};
+  });
+
+  useEffect(() => {
+    localStorage.setItem('sonic_downloaded_models', JSON.stringify(downloadedModels));
+  }, [downloadedModels]);
+
   const [isListening, setIsListening] = useState(false);
   const [pendingImages, setPendingImages] = useState([]);
   const [showCamera, setShowCamera] = useState(false);
@@ -79,11 +87,18 @@ function App() {
     if (isWarmup) {
       try {
         const modelsToInit = model === 'auto' ? [TEXT_MODEL, VISION_MODEL] : [model];
-        for (const m of modelsToInit) {
+        const modelsNeeded = modelsToInit.filter(m => !downloadedModels[m]);
+
+        if (modelsNeeded.length === 0) {
+          alert('This model is already downloaded and ready.');
+          return;
+        }
+
+        for (const m of modelsNeeded) {
           await initWebLLM(m);
           setDownloadedModels(prev => ({ ...prev, [m]: true }));
         }
-        alert('SONIC Intelligence is now downloaded and ready for offline use.');
+        alert('SONIC Intelligence updated. Models are now ready for offline use.');
         return;
       } catch (e) {
         alert(e.message);
