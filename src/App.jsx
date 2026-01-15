@@ -24,6 +24,7 @@ function App() {
   const [showSettings, setShowSettings] = useState(false);
   const [showDocs, setShowDocs] = useState(false);
   const [userProfile, setUserProfile] = useState(getInitialUser);
+  const [downloadedModels, setDownloadedModels] = useState({});
   const messagesEndRef = useRef(null);
   const { sendMessage, loading, progress, initWebLLM } = useEngine();
 
@@ -52,7 +53,8 @@ function App() {
       // This is a warmup call
       try {
         await initWebLLM(model);
-        alert('Model ready. You can now chat offline.');
+        setDownloadedModels(prev => ({ ...prev, [model]: true }));
+        alert('Model downloaded and ready. You can now chat offline.');
         return;
       } catch (e) {
         alert(e.message);
@@ -81,6 +83,7 @@ function App() {
       ));
 
       await sendMessage(updatedMessages, 'browser', model, (content) => {
+        setDownloadedModels(prev => ({ ...prev, [model]: true }));
         setChats(prev => prev.map(c =>
           c.id === activeChatId
             ? {
@@ -203,9 +206,9 @@ function App() {
                 style={{
                   padding: '0.4rem 0.8rem',
                   fontSize: '0.8rem',
-                  background: 'var(--accent-primary)',
+                  background: downloadedModels[model] ? 'var(--accent-secondary)' : 'var(--accent-primary)',
                   border: 'none',
-                  color: 'white',
+                  color: downloadedModels[model] ? '#020617' : 'white',
                   borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
@@ -215,11 +218,13 @@ function App() {
                 }}
               >
                 <Download size={14} />
-                {loading ? `Initializing ${progress?.percent || 0}%` : 'Initialize AI'}
+                {loading ? `Initializing ${progress?.percent || 0}%` : downloadedModels[model] ? 'Downloaded' : 'Initialize AI'}
               </button>
               <span style={{ fontSize: '0.7rem', color: 'var(--text-muted)', maxWidth: '140px', lineHeight: '1.2' }}>
                 {loading ? (
                   <strong>Status: {progress?.status || 'Active'}</strong>
+                ) : downloadedModels[model] ? (
+                  <strong>Ready for offline use.</strong>
                 ) : (
                   <><strong>Offline Support:</strong> One-time setup saves models locally.</>
                 )}
